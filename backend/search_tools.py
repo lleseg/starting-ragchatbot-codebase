@@ -126,6 +126,66 @@ class CourseSearchTool(Tool):
         return "\n\n".join(formatted)
 
 
+class CourseOutlineTool(Tool):
+    """Tool for retrieving a course outline from the course catalog"""
+
+    def __init__(self, vector_store: VectorStore):
+        self.store = vector_store
+        self.last_sources = []  # Track sources from last lookup
+
+    def get_tool_definition(self) -> Dict[str, Any]:
+        """Return Anthropic tool definition for this tool"""
+        return {
+            "name": "get_course_outline",
+            "description": (
+                "Get a course outline: the course title, course link and the "
+                "complete list of lessons (number and title). Use for questions "
+                "about a course's structure, outline, syllabus or list of lessons"
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "course_title": {
+                        "type": "string",
+                        "description": "Course title (partial matches work, e.g. 'MCP', 'Computer Use')",
+                    },
+                },
+                "required": ["course_title"],
+            },
+        }
+
+    def execute(self, course_title: str) -> str:
+        """
+        Execute the outline lookup for the given course.
+
+        Args:
+            course_title: Full or partial course title
+
+        Returns:
+            Formatted course outline or error message
+        """
+        outline = self.store.get_course_outline(course_title)
+        if not outline:
+            return f"No course found matching '{course_title}'"
+
+        lines = [
+            f"Course Title: {outline['title']}",
+            f"Course Link: {outline['course_link'] or 'Not available'}",
+            f"Lessons ({len(outline['lessons'])}):",
+        ]
+        for lesson in outline["lessons"]:
+            lines.append(
+                f"- Lesson {lesson.get('lesson_number')}: {lesson.get('lesson_title')}"
+            )
+        if not outline["lessons"]:
+            lines.append("- No lessons listed")
+
+        # Cite the course itself, linking to its page
+        self.last_sources = [{"text": outline["title"], "link": outline["course_link"]}]
+
+        return "\n".join(lines)
+
+
 class ToolManager:
     """Manages available tools for the AI"""
 
