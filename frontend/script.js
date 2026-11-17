@@ -3,6 +3,7 @@ const API_URL = '/api';
 
 // Global state
 let currentSessionId = null;
+let pendingQuery = null; // AbortController for the in-flight query, if any
 
 // DOM elements
 let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
@@ -29,7 +30,13 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
+
+    // New chat
+    document.getElementById('newChatButton').addEventListener('click', startNewChat);
+
+    // Free the server-side session when the tab is closed or reloaded
+    window.addEventListener('pagehide', () => deleteSession(currentSessionId));
+
     
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
@@ -100,6 +107,9 @@ async function sendMessage() {
     chatMessages.appendChild(loadingMessage);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
+    const controller = new AbortController();
+    pendingQuery = controller;
+
     try {
         const response = await fetch(`${API_URL}/query`, {
             method: 'POST',
@@ -109,7 +119,8 @@ async function sendMessage() {
             body: JSON.stringify({
                 query: query,
                 session_id: currentSessionId
-            })
+            }),
+            signal: controller.signal
         });
 
         if (!response.ok) throw new Error('Query failed');
@@ -126,14 +137,41 @@ async function sendMessage() {
         addMessage(data.answer, 'assistant', data.sources);
 
     } catch (error) {
+        // A new chat was started mid-request; the old conversation is already gone
+        if (error.name === 'AbortError') return;
+
         // Replace loading message with error
         loadingMessage.remove();
         addMessage(`Error: ${error.message}`, 'assistant');
     } finally {
+        if (pendingQuery === controller) {
+            pendingQuery = null;
+        }
         chatInput.disabled = false;
         sendButton.disabled = false;
         chatInput.focus();
     }
+}
+
+// Start a fresh conversation without reloading the page
+function startNewChat() {
+    if (pendingQuery) {
+        pendingQuery.abort();
+        pendingQuery = null;
+    }
+    deleteSession(currentSessionId);
+    createNewSession();
+    chatInput.value = '';
+    chatInput.focus();
+}
+
+// Ask the server to drop a session's history; failures are harmless
+function deleteSession(sessionId) {
+    if (!sessionId) return;
+    fetch(`${API_URL}/session/${encodeURIComponent(sessionId)}`, {
+        method: 'DELETE',
+        keepalive: true
+    }).catch(() => {});
 }
 
 function createLoadingMessage() {

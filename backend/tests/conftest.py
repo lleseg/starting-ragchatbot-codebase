@@ -12,6 +12,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
@@ -51,6 +52,11 @@ def create_test_app(rag_system, frontend_dir: Optional[str] = None) -> FastAPI:
             return QueryResponse(answer=answer, sources=sources, session_id=session_id)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    @app.delete("/api/session/{session_id}", status_code=204)
+    async def delete_session(session_id: str):
+        rag_system.session_manager.delete_session(session_id)
+        return Response(status_code=204)
 
     @app.get("/api/courses", response_model=CourseStats)
     async def get_course_stats():

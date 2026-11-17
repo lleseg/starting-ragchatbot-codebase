@@ -68,6 +68,24 @@ class TestQueryEndpoint:
         mock_rag_system.query.assert_not_called()
 
 
+class TestDeleteSessionEndpoint:
+    def test_delete_session_returns_204(self, client, mock_rag_system):
+        response = client.delete("/api/session/session_1")
+
+        assert response.status_code == 204
+        assert response.content == b""
+        mock_rag_system.session_manager.delete_session.assert_called_once_with(
+            "session_1"
+        )
+
+    def test_delete_unknown_session_is_idempotent(self, client, mock_rag_system):
+        mock_rag_system.session_manager.delete_session.return_value = False
+
+        response = client.delete("/api/session/missing")
+
+        assert response.status_code == 204
+
+
 class TestCoursesEndpoint:
     def test_get_courses_returns_stats(self, client, sample_course_titles):
         response = client.get("/api/courses")

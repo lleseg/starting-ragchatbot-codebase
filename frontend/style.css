@@ -556,6 +556,7 @@ a.source-chip .source-icon {
 }
 
 /* Sidebar Headers */
+.new-chat-button,
 .stats-header,
 .suggested-header {
     font-size: 0.875rem;
@@ -572,28 +573,52 @@ a.source-chip .source-icon {
     letter-spacing: 0.5px;
 }
 
+.new-chat-button:focus,
 .stats-header:focus,
 .suggested-header:focus {
     color: var(--primary-color);
 }
 
+.new-chat-button:hover,
 .stats-header:hover,
 .suggested-header:hover {
     color: var(--primary-color);
 }
+
+.new-chat-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: left;
+    font-family: inherit;
+    line-height: inherit;
+}
+
 
 .stats-header::-webkit-details-marker,
 .suggested-header::-webkit-details-marker {
     display: none;
 }
 
+/* Fixed-width marker slot so all sidebar labels start at the same x */
+.new-chat-button::before,
 .stats-header::before,
 .suggested-header::before {
     content: '▶';
     display: inline-block;
+    width: 0.875rem;
     margin-right: 0.5rem;
+    text-align: center;
     transition: transform 0.2s ease;
     font-size: 0.75rem;
+}
+
+.new-chat-button::before {
+    content: '+';
 }
 
 details[open] .stats-header::before,

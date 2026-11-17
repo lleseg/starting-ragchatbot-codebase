@@ -8,7 +8,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -77,6 +77,14 @@ async def query_documents(request: QueryRequest):
         return QueryResponse(answer=answer, sources=sources, session_id=session_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/session/{session_id}", status_code=204)
+async def delete_session(session_id: str):
+    """Delete a conversation session when the user starts a new chat"""
+    # Idempotent: an unknown session (e.g. lost on restart) is already gone
+    rag_system.session_manager.delete_session(session_id)
+    return Response(status_code=204)
 
 
 @app.get("/api/courses", response_model=CourseStats)
