@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Dependencies are managed with `uv` (Python 3.13). There is no test suite, linter, or build step configured.
+Dependencies are managed with `uv` (Python 3.13). There is no test suite or build step configured. Code quality uses `black` (formatting) and `ruff` (linting and import sorting), configured in `pyproject.toml` as dev dependencies.
 
 Always use `uv` to run the server and to manage all dependencies. Add or remove packages with `uv add` / `uv remove` so `pyproject.toml` and `uv.lock` stay in sync, install with `uv sync`, and run anything Python with `uv run`. Never use `pip` directly.
 
@@ -13,6 +13,8 @@ uv sync                                                # install dependencies
 ./run.sh                                               # start the app on :8000
 cd backend && uv run uvicorn app:app --reload --port 8000   # manual start
 rm -rf backend/chroma_db                               # force re-ingestion of docs/ on next start
+./scripts/format.sh                                    # auto-fix lint issues and format with black
+./scripts/quality.sh                                   # check formatting and lint (no changes, non-zero exit on failure)
 ```
 
 - Requires `ANTHROPIC_API_KEY` in `.env` at the repo root (see `.env.example`).
