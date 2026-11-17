@@ -17,6 +17,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=26.10.1",
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
     "ruff>=0.17.5",
 ]
 
@@ -38,3 +40,11 @@ ignore = ["E501"]
 [tool.ruff.lint.per-file-ignores]
 # warnings filter must run before the imports it silences
 "backend/app.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
