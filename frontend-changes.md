@@ -87,3 +87,22 @@ Clicking the button already switched themes. This change makes the color transit
 
 ## `frontend/index.html`
 - Bumped cache-busting query strings to `v=11`.
+
+---
+
+# Frontend Changes: Theme Switching Cleanup
+
+The theme toggle, light palette and transitions were already in place. This change fills the remaining gaps so that CSS variables and the `data-theme` attribute fully control both themes.
+
+## `frontend/index.html`
+- `<html>` now starts with `data-theme="dark"`. Before this change, the attribute was missing until the user toggled the theme or a saved theme loaded. Now the attribute always shows the active theme. The inline head script still replaces it with the saved theme before first paint.
+- Bumped cache-busting query strings to `v=12`.
+
+## `frontend/style.css`
+- Added `color-scheme: dark` to `:root` and `color-scheme: light` to `:root[data-theme="light"]`. Native browser UI, such as scrollbars, input carets, autofill and form controls, now matches the active theme.
+- Added an `--on-primary` variable (`#ffffff` in both themes) for text on primary-colored surfaces.
+- Replaced the two hardcoded `color: white` rules (`.message.user .message-content` and `#sendButton`) with `var(--on-primary)`. Every color in the theme now comes from a CSS variable.
+
+## Verification
+- `script.js` checks `data-theme === 'light'`, so the explicit `dark` value does not change toggle behavior.
+- The only remaining literal colors are the gradient on `header h1`, which is hidden (`header { display: none; }`), and `transparent` values, which work in both themes.
