@@ -23,7 +23,7 @@ class RAGSystem:
             config.CHROMA_PATH, config.EMBEDDING_MODEL, config.MAX_RESULTS
         )
         self.ai_generator = AIGenerator(
-            config.ANTHROPIC_API_KEY, config.ANTHROPIC_MODEL
+            config.ANTHROPIC_API_KEY, config.ANTHROPIC_MODEL, config.MAX_TOOL_ROUNDS
         )
         self.session_manager = SessionManager(config.MAX_HISTORY)
 

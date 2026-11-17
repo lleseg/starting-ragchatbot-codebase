@@ -124,6 +124,12 @@ class TestExecuteWithMockStore:
         manager.reset_sources()
         assert manager.get_last_sources() == []
 
+    def test_tool_manager_raises_for_unknown_tool(self):
+        manager = ToolManager()
+
+        with pytest.raises(KeyError, match="no_such_tool"):
+            manager.execute_tool("no_such_tool", query="q")
+
 
 class TestExecuteWithRealStore:
     """Runs the tool against real ChromaDB + embeddings with a sample course."""

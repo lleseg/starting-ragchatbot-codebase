@@ -208,9 +208,9 @@ class ToolManager:
         return [tool.get_tool_definition() for tool in self.tools.values()]
 
     def execute_tool(self, tool_name: str, **kwargs) -> str:
-        """Execute a tool by name with given parameters"""
+        """Execute a tool by name with given parameters; raise KeyError if unknown"""
         if tool_name not in self.tools:
-            return f"Tool '{tool_name}' not found"
+            raise KeyError(f"Tool '{tool_name}' not found")
 
         return self.tools[tool_name].execute(**kwargs)
 

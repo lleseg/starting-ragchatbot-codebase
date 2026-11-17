@@ -14,6 +14,7 @@ class Config:
     # Anthropic API settings
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     ANTHROPIC_MODEL: str = "claude-sonnet-5-5"
+    MAX_TOOL_ROUNDS: int = 2  # Sequential tool-calling rounds per query
 
     # Embedding model settings
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"

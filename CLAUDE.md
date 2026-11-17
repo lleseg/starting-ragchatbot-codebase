@@ -54,7 +54,7 @@ Lesson bodies are split into sentence-based chunks (`CHUNK_SIZE`/`CHUNK_OVERLAP`
 1. `RAGSystem.query` loads session history from `SessionManager` (in-memory, lost on restart) and calls `AIGenerator.generate_response` with the tool definitions from `ToolManager`.
 2. `AIGenerator` makes a first Claude call with `tool_choice: auto`. Conversation history is injected as text into the system prompt, not as message turns.
 3. If Claude requests `search_course_content`, `CourseSearchTool` runs `VectorStore.search`: resolve `course_name` against the catalog (top-1 match), build a filter, query `course_content`.
-4. A second Claude call is made **without tools** to produce the final answer. Only one round of tool use is supported.
+4. Claude can use tools in up to `MAX_TOOL_ROUNDS` (2) sequential rounds, each a separate API call that sees the previous results. After the last round, or when a tool raises (an unknown tool name raises `KeyError`), the next call keeps `tools` but sets `tool_choice: none` to force a text answer. The failure is sent back as a `tool_result` with `is_error: true`. Error strings returned by tools (no results, search errors) are normal results.
 5. Sources for the UI are passed out-of-band: `CourseSearchTool` stores them on `last_sources`, and `RAGSystem` reads and resets them via `ToolManager` after the response is generated. This is shared mutable state on a single tool instance.
 
 New tools are added by subclassing `Tool` in `search_tools.py` (implement `get_tool_definition` and `execute`) and registering the tool with `ToolManager` in `RAGSystem.__init__`.
