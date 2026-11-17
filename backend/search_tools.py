@@ -116,7 +116,10 @@ class CourseSearchTool(Tool):
                         course_title, lesson_num
                     )
                 link = lesson_links[key]
-            sources.append({"text": text, "link": link})
+            # Several chunks often come from one lesson; cite it once
+            source = {"text": text, "link": link}
+            if source not in sources:
+                sources.append(source)
 
             formatted.append(f"{header}\n{doc}")
 

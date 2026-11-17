@@ -45,7 +45,7 @@ Provide only the direct answer to what was asked.
         self.model = model
 
         # Pre-build base API parameters
-        self.base_params = {"model": self.model, "temperature": 0, "max_tokens": 800}
+        self.base_params = {"model": self.model, "max_tokens": 800}
 
     def generate_response(
         self,

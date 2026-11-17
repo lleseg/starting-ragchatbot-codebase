@@ -123,7 +123,12 @@ async function sendMessage() {
             signal: controller.signal
         });
 
-        if (!response.ok) throw new Error('Query failed');
+        if (!response.ok) {
+            // Surface the server's error detail instead of a generic message
+            const body = await response.json().catch(() => ({}));
+            const detail = typeof body.detail === 'string' ? body.detail : null;
+            throw new Error(detail || `Query failed (HTTP ${response.status})`);
+        }
 
         const data = await response.json();
         

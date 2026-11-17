@@ -7,6 +7,7 @@ files, neither of which is available in the test environment. Instead,
 injected (mocked) RAG system and a temporary frontend directory.
 """
 
+from types import SimpleNamespace
 from typing import List, Optional
 from unittest.mock import MagicMock
 
@@ -133,3 +134,68 @@ def test_app(mock_rag_system, frontend_dir):
 @pytest.fixture
 def client(test_app):
     return TestClient(test_app)
+
+
+# Real components for search / generator / RAG tests
+
+SAMPLE_COURSE_DOC = """Course Title: Intro to Retrieval Testing
+Course Link: https://example.com/retrieval
+Course Instructor: Ada Tester
+
+Lesson 1: Embeddings
+Lesson Link: https://example.com/retrieval/lesson-1
+Embeddings map text to dense vectors. Similar sentences end up close together in vector space.
+
+Lesson 2: Vector Databases
+Lesson Link: https://example.com/retrieval/lesson-2
+ChromaDB stores embeddings and supports metadata filters. Queries return the nearest chunks.
+"""
+
+
+@pytest.fixture(scope="session")
+def sample_course_file(tmp_path_factory):
+    path = tmp_path_factory.mktemp("docs") / "retrieval_course.txt"
+    path.write_text(SAMPLE_COURSE_DOC)
+    return path
+
+
+@pytest.fixture(scope="session")
+def test_config(tmp_path_factory):
+    """Production config pointed at a throwaway ChromaDB directory."""
+    from config import Config
+
+    return Config(
+        ANTHROPIC_API_KEY="test-key",
+        CHROMA_PATH=str(tmp_path_factory.mktemp("chroma")),
+    )
+
+
+@pytest.fixture(scope="session")
+def populated_vector_store(test_config, sample_course_file):
+    """A real VectorStore (ChromaDB + embeddings) holding the sample course."""
+    from document_processor import DocumentProcessor
+    from vector_store import VectorStore
+
+    store = VectorStore(
+        test_config.CHROMA_PATH, test_config.EMBEDDING_MODEL, test_config.MAX_RESULTS
+    )
+    processor = DocumentProcessor(test_config.CHUNK_SIZE, test_config.CHUNK_OVERLAP)
+    course, chunks = processor.process_course_document(str(sample_course_file))
+    store.add_course_metadata(course)
+    store.add_course_content(chunks)
+    return store
+
+
+# Fake Anthropic responses
+
+
+def text_block(text):
+    return SimpleNamespace(type="text", text=text)
+
+
+def tool_use_block(name, tool_input, block_id="toolu_1"):
+    return SimpleNamespace(type="tool_use", name=name, input=tool_input, id=block_id)
+
+
+def fake_response(*blocks, stop_reason="end_turn"):
+    return SimpleNamespace(content=list(blocks), stop_reason=stop_reason)
