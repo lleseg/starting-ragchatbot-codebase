@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
     
+    setupThemeToggle();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -40,6 +41,46 @@ function setupEventListeners() {
     });
 }
 
+// Theme Toggle
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    updateThemeToggleLabel(themeToggle);
+
+    // Native <button> already handles Enter and Space for keyboard users
+    themeToggle.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        applyTheme(isLight ? 'dark' : 'light');
+        updateThemeToggleLabel(themeToggle);
+    });
+}
+
+let themeTransitionTimer = null;
+
+function applyTheme(theme) {
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Enable color transitions only for the duration of the switch
+    if (!reduceMotion) {
+        root.classList.add('theme-transition');
+        clearTimeout(themeTransitionTimer);
+        themeTransitionTimer = setTimeout(() => {
+            root.classList.remove('theme-transition');
+        }, 350);
+    }
+
+    root.setAttribute('data-theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (e) {}
+}
+
+function updateThemeToggleLabel(themeToggle) {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const label = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+    themeToggle.setAttribute('aria-label', label);
+    themeToggle.setAttribute('title', label);
+}
 
 // Chat Functions
 async function sendMessage() {
