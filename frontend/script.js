@@ -166,7 +166,7 @@ function addMessage(content, type, sources = null, isWelcome = false) {
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${dedupeSources(sources).map(renderSource).join('')}</div>
             </details>
         `;
     }
@@ -176,6 +176,31 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     return messageId;
+}
+
+// Several chunks can come from the same lesson; show each lesson once
+function dedupeSources(sources) {
+    const seen = new Set();
+    return sources.filter(source => {
+        if (seen.has(source.text)) {
+            return false;
+        }
+        seen.add(source.text);
+        return true;
+    });
+}
+
+const PLAY_ICON = '<svg class="source-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+const DOC_ICON = '<svg class="source-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM14 3v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+
+// Render a source as a chip linking to its lesson video, or a plain chip when it has no link
+function renderSource(source) {
+    const text = `<span class="source-text">${escapeHtml(source.text)}</span>`;
+    if (!source.link) {
+        return `<span class="source-chip source-chip-plain">${DOC_ICON}${text}</span>`;
+    }
+    const href = escapeHtml(source.link).replace(/"/g, '&quot;');
+    return `<a class="source-chip" href="${href}" target="_blank" rel="noopener noreferrer" title="Open lesson video in a new tab">${PLAY_ICON}${text}</a>`;
 }
 
 // Helper function to escape HTML for user messages

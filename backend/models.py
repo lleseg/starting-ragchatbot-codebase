@@ -20,6 +20,13 @@ class Course(BaseModel):
     lessons: List[Lesson] = []  # List of lessons in this course
 
 
+class Source(BaseModel):
+    """Represents a source citation shown in the UI"""
+
+    text: str  # Display label, e.g. "Course Title - Lesson 1"
+    link: Optional[str] = None  # URL link to the lesson video
+
+
 class CourseChunk(BaseModel):
     """Represents a text chunk from a course for vector storage"""
 

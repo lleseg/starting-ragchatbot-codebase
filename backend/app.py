@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from config import config
+from models import Source
 from rag_system import RAGSystem
 
 # Initialize FastAPI app
@@ -47,7 +48,7 @@ class QueryResponse(BaseModel):
     """Response model for course queries"""
 
     answer: str
-    sources: List[str]
+    sources: List[Source]
     session_id: str
 
 

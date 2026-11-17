@@ -16,6 +16,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
+from models import Source
+
 
 class QueryRequest(BaseModel):
     query: str
@@ -24,7 +26,7 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
-    sources: List[str]
+    sources: List[Source]
     session_id: str
 
 
@@ -80,8 +82,14 @@ def sample_course_titles():
 @pytest.fixture
 def sample_sources():
     return [
-        "Building Towards Computer Use with Anthropic - Lesson 1",
-        "Building Towards Computer Use with Anthropic - Lesson 2",
+        {
+            "text": "Building Towards Computer Use with Anthropic - Lesson 1",
+            "link": "https://example.com/computer-use/lesson-1",
+        },
+        {
+            "text": "Building Towards Computer Use with Anthropic - Lesson 2",
+            "link": None,
+        },
     ]
 
 
